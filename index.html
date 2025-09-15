@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <!-- Import für eine schönere Schriftart für die Überschrift -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <button id="settings-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <div id="clock-container">
+            <h2 id="time">00:00:00</h2>
+            <p id="date">Montag, 1. Januar</p>
+        </div>
+        <h1 id="greeting">Hallo Name</h1>
+        
+        <div class="search-wrapper">
+            <div id="searchBar">
+                <input type="text" placeholder="Suche oder gib eine URL ein..." required>
+                <div id="calculator-result"></div>
+                <div id="search-container">
+                    <button id="SearchButton">Google</button>
+                </div>
+            </div>
+            <div id="search-engine-list" class="hidden"></div>
+        </div>
+
+        <div id="bookmarks">
+            <button id="add-bookmark-btn" class="bookmark add-bookmark">+</button>
+        </div>
+
+        <div class="widget-row">
+            <div id="todo-widget" class="widget-preview">
+                <h4>To-Do Liste</h4>
+                <div class="widget-content">
+                    <ul id="todo-list"></ul>
+                </div>
+            </div>
+            <div id="notes-widget" class="widget-preview">
+                <h4>Notizen</h4>
+                <div class="widget-content">
+                    <textarea id="notes-textarea" placeholder="Deine Notizen..."></textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals & Overlays -->
+    <div id="modal-overlay" class="hidden">
+        <!-- Input Modal -->
+        <div id="input-modal" class="modal hidden">
+            <h3 id="modal-title">Titel</h3>
+            <input type="text" id="modal-input">
+            <div class="modal-buttons">
+                <button id="modal-cancel" class="modal-button secondary">Abbrechen</button>
+                <button id="modal-confirm" class="modal-button">Bestätigen</button>
+            </div>
+        </div>
+        <!-- Confirm Modal -->
+        <div id="confirm-modal" class="modal hidden">
+            <h3 id="confirm-modal-title">Bestätigen</h3>
+            <p id="confirm-modal-text">Bist du sicher?</p>
+            <div class="modal-buttons">
+                <button id="confirm-modal-cancel" class="modal-button secondary">Abbrechen</button>
+                <button id="confirm-modal-confirm" class="modal-button">Ja</button>
+            </div>
+        </div>
+         <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <button id="settings-close-btn" class="close-btn">&times;</button>
+            <h2>Einstellungen</h2>
+            <div class="settings-section">
+                <h4>Farbschema</h4>
+                <div class="color-pickers">
+                    <div><label for="color-gradient-start">Verlauf Anfang:</label><input type="color" id="color-gradient-start"></div>
+                    <div><label for="color-gradient-end">Verlauf Ende:</label><input type="color" id="color-gradient-end"></div>
+                    <div><label for="color-accent">Akzentfarbe:</label><input type="color" id="color-accent"></div>
+                    <div><label for="color-text">Hauptschrift:</label><input type="color" id="color-text"></div>
+                    <div><label for="color-greeting">Begrüßung:</label><input type="color" id="color-greeting"></div>
+                    <div><label for="color-clock">Uhr & Datum:</label><input type="color" id="color-clock"></div>
+                </div>
+                 <button id="reset-colors-btn" class="modal-button secondary small">Farben zurücksetzen</button>
+            </div>
+            <div class="settings-section">
+                <h4>Hintergrundbild</h4>
+                 <form id="background-form" class="settings-form">
+                    <input type="text" id="background-url-input" placeholder="Bild-URL einfügen...">
+                    <button type="submit" class="modal-button small">Anwenden</button>
+                </form>
+                <div class="background-buttons">
+                    <button id="upload-background-btn" class="modal-button secondary small">Bild hochladen...</button>
+                    <input type="file" id="background-file-input" accept="image/*" style="display: none;">
+                    <button id="reset-background-btn" class="modal-button secondary small">Zurücksetzen</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>Suchmaschinen</h4>
+                <ul id="settings-searchengine-list"></ul>
+                <form id="add-searchengine-form" class="settings-form">
+                    <input type="text" id="new-searchengine-name" placeholder="Name (z.B. Wikipedia)" required>
+                    <input type="text" id="new-searchengine-url" placeholder="URL (mit {query} für Suche)" required>
+                    <button type="submit" class="modal-button small">Hinzufügen</button>
+                </form>
+            </div>
+             <div class="settings-section">
+                <h4>Daten</h4>
+                <div class="import-export-buttons">
+                    <button id="export-settings-btn" class="modal-button secondary small">Einstellungen exportieren</button>
+                    <button id="import-settings-btn" class="modal-button secondary small">Einstellungen importieren</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
+         <!-- Widget Modal -->
+        <div id="widget-modal" class="modal hidden">
+            <button id="widget-close-btn" class="close-btn">&times;</button>
+            <h3 id="widget-modal-title">Widget</h3>
+            <div id="widget-modal-content"></div>
+            <form id="add-todo-form">
+                <input id="add-todo-input" type="text" placeholder="Neue Aufgabe..." required>
+                <button type="submit">+</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tutorial Banner -->
+    <div id="tutorial-banner" class="tutorial-banner">
+        <p>Neu hier? Nimm an einer kurzen Tour teil!</p>
+        <button id="start-tutorial-btn" class="modal-button small">Starten</button>
+        <button id="close-tutorial-banner-btn" class="close-btn">&times;</button>
+    </div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="hidden"></div>
+    <div id="tutorial-box" class="hidden">
+        <p id="tutorial-text">Dies ist ein Tutorial-Schritt.</p>
+        <div class="tutorial-footer">
+            <span id="tutorial-progress">Schritt 1/X</span>
+             <div class="tutorial-buttons">
+                <button id="tutorial-skip" class="modal-button secondary small hidden">Überspringen</button>
+                <div class="tutorial-main-buttons">
+                    <button id="tutorial-prev" class="modal-button secondary small">Zurück</button>
+                    <button id="tutorial-next" class="modal-button small">Weiter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
