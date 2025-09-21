@@ -31,6 +31,7 @@ const widgetCloseBtn = document.getElementById('widget-close-btn');
 const uploadBackgroundBtn = document.getElementById('upload-background-btn');
 const backgroundFileInput = document.getElementById('background-file-input');
 const calculatorResult = document.getElementById('calculator-result');
+const mainElement = document.querySelector('main');
 
 
 // --- Globale Zustandsvariablen ---
@@ -40,7 +41,8 @@ let todos = [];
 let currentSearchEngineIndex = 0;
 let searchListTimeout = null;
 let draggedBookmark = null;
-let activeModal = null; // To track which modal is open
+let activeModal = null;
+let fullExperienceTriggered = false;
 
 // --- Standardwerte ---
 const DEFAULT_COLORS = {
@@ -67,15 +69,126 @@ const DEFAULT_TODOS = [
 
 // --- Hauptlogik ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Check for tutorial BEFORE loading data, as loading sets default data.
     const isNewUser = localStorage.length === 0;
-
-    loadAndRenderAll();
+    loadMinimalUI();
     setupEventListeners();
-    updateTime();
-    setInterval(updateTime, 1000);
     searchInput.focus();
     searchInput.select();
+    document.addEventListener('mousemove', triggerFullExperience, { once: true });
+    document.addEventListener('mousedown', triggerFullExperience, { once: true });
+    if (isNewUser) {
+        setTimeout(() => {
+            tutorialBanner.classList.add('visible');
+            const bannerTimeout = setTimeout(() => tutorialBanner.classList.remove('visible'), 5000);
+            startTutorialBtn.onclick = () => { clearTimeout(bannerTimeout); tutorialBanner.classList.remove('visible'); startTutorial(); };
+            closeTutorialBannerBtn.onclick = () => { clearTimeout(bannerTimeout); tutorialBanner.classList.remove('visible'); };
+        }, 1500);
+    }
+});
+
+// --- Instant Answer Logik ---
+function handleCalculatorInput(e) {
+    const input = e.target.value.trim().toLowerCase();
+
+    // Zufallszahl
+    if (input.startsWith("rand") || input.startsWith("zufall")) {
+        let match = input.match(/(rand|zufall)\s*(\d+)?\s*[- ]?\s*(\d+)?/);
+        let min = 1, max = 100;
+        if (match && match[2] && match[3]) {
+            min = parseInt(match[2]);
+            max = parseInt(match[3]);
+        }
+        const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+        calculatorResult.textContent = `Zufallszahl: ${rand}`;
+        calculatorResult.classList.add('visible');
+        return;
+    }
+
+    // Würfel
+    if (input.startsWith("roll") || input.startsWith("würfel")) {
+        let match = input.match(/(\d*)d(\d+)/);
+        if (match) {
+            let count = parseInt(match[1]) || 1;
+            let sides = parseInt(match[2]);
+            let rolls = [];
+            for (let i = 0; i < count; i++) {
+                rolls.push(Math.floor(Math.random() * sides) + 1);
+            }
+            let sum = rolls.reduce((a, b) => a + b, 0);
+            calculatorResult.textContent = `Gewürfelt: ${rolls.join(", ")}${count > 1 ? ` (Summe: ${sum})` : ""}`;
+            calculatorResult.classList.add('visible');
+            return;
+        }
+    }
+
+    // Münzwurf
+    if (input === "kopf" || input === "zahl") {
+        calculatorResult.textContent = "Ergebnis: " + (Math.random() < 0.5 ? "Kopf" : "Zahl");
+        calculatorResult.classList.add('visible');
+        return;
+    }
+
+    // Passwortgenerator
+    if (input.startsWith("pw") || input.startsWith("passwort")) {
+        let match = input.match(/(pw|passwort)\s*(\d+)?/);
+        let length = match && match[2] ? parseInt(match[2]) : 12;
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-={}[]";
+        let pw = "";
+        for (let i = 0; i < length; i++) {
+            pw += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        calculatorResult.innerHTML = `
+            <span>${pw}</span>
+            <button id="copyPwBtn" style="margin-left:8px; cursor:pointer;">📋</button>
+        `;
+        calculatorResult.classList.add('visible');
+        document.getElementById("copyPwBtn").onclick = () => {
+            navigator.clipboard.writeText(pw);
+            document.getElementById("copyPwBtn").textContent = "✅";
+            setTimeout(() => document.getElementById("copyPwBtn").textContent = "📋", 1500);
+        };
+        return;
+    }
+
+    // Mathe-Rechner (nur wenn "=" am Ende)
+    if (input.endsWith('=')) {
+        const expression = input.slice(0, -1);
+        try {
+            const result = safeCalculate(expression);
+            if (isFinite(result)) {
+                calculatorResult.textContent = Number(result.toFixed(10)).toString();
+                calculatorResult.classList.add('visible');
+            } else {
+                calculatorResult.classList.remove('visible');
+            }
+        } catch {
+            calculatorResult.classList.remove('visible');
+        }
+    } else {
+        calculatorResult.classList.remove('visible');
+    }
+}
+
+// --- Rest vom Code (unverändert) ---
+// ... (alles wie in deiner Version, nur handleCalculatorInput ist angepasst) ...
+
+
+// --- Hauptlogik ---
+document.addEventListener('DOMContentLoaded', () => {
+    const isNewUser = localStorage.length === 0;
+
+    // Lädt die minimalen Elemente INKLUSIVE Uhrzeit
+    loadMinimalUI();
+    setupEventListeners();
+    
+    // Setzt den Fokus auf die Suchleiste
+    searchInput.focus();
+    searchInput.select();
+    
+    // GEÄNDERT: Einmalige Listener, die nur auf Maus-Interaktion reagieren
+    document.addEventListener('mousemove', triggerFullExperience, { once: true });
+    document.addEventListener('mousedown', triggerFullExperience, { once: true });
+
 
     if (isNewUser) {
         setTimeout(() => {
@@ -88,7 +201,38 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Lade-, Speicher- und Render-Funktionen ---
+
+// GEÄNDERT: Funktion für den schnellen Start lädt jetzt auch die Uhr
+function loadMinimalUI() {
+    loadColors();
+    const name = localStorage.getItem('userName') || "Name";
+    greeting.textContent = `Hallo ${name}`;
+    loadSearchEngines();
+    updateSearchFunctionality();
+    // Startet die Uhr sofort
+    updateTime();
+    setInterval(updateTime, 1000);
+}
+
+// Funktion, die den Rest der Seite nachlädt
+function triggerFullExperience() {
+    if (fullExperienceTriggered) return;
+    fullExperienceTriggered = true;
+
+    mainElement.classList.remove('initial-load');
+
+    // Lade den Rest der Inhalte
+    loadBackground();
+    loadBookmarks();
+    renderBookmarks();
+    loadTodos();
+    renderTodos();
+    loadNotes();
+}
+
+
 function loadAndRenderAll() {
+    // Diese Funktion wird jetzt für den Import/Export benötigt, aber nicht mehr beim Start
     loadBackground();
     loadColors();
     const name = localStorage.getItem('userName') || "Name";
@@ -129,6 +273,16 @@ function applyColors(colors) {
     const textColorRGB = hexToRgb(colors.textColor);
     if (textColorRGB) {
         root.style.setProperty('--text-color-light', `rgba(${textColorRGB.r}, ${textColorRGB.g}, ${textColorRGB.b}, 0.6)`);
+    }
+
+    // Set greeting and clock colors if available
+    if (colors.greeting) {
+        root.style.setProperty('--greeting-color', colors.greeting);
+        document.getElementById('color-greeting').value = colors.greeting;
+    }
+    if (colors.clock) {
+        root.style.setProperty('--clock-color', colors.clock);
+        document.getElementById('color-clock').value = colors.clock;
     }
 
     // Update color picker values
@@ -271,12 +425,38 @@ function setupEventListeners() {
     document.getElementById('color-gradient-end').addEventListener('input', handleColorChange);
     document.getElementById('color-accent').addEventListener('input', handleColorChange);
     document.getElementById('color-text').addEventListener('input', handleColorChange);
+    document.getElementById('color-greeting').addEventListener('input', handleColorChange);
+    document.getElementById('color-clock').addEventListener('input', handleColorChange);
     document.getElementById('reset-colors-btn').addEventListener('click', () => { localStorage.removeItem('themeColors'); loadColors(); });
     document.getElementById('add-searchengine-form').addEventListener('submit', handleAddSearchEngine);
 
     document.getElementById('export-settings-btn').addEventListener('click', exportSettings);
     document.getElementById('import-settings-btn').addEventListener('click', () => document.getElementById('import-file-input').click());
     document.getElementById('import-file-input').addEventListener('change', importSettings);
+    
+    // Instant-Answers Tutorial Event Listener
+    document.getElementById('instant-tutorial-btn').addEventListener('click', () => {
+        instantOverlay.classList.add('active');
+        instantIndex = 0;
+        showInstantStep();
+    });
+    document.getElementById('instant-prev').addEventListener('click', () => {
+        if (instantIndex > 0) {
+            instantIndex--;
+            showInstantStep();
+        }
+    });
+    document.getElementById('instant-next').addEventListener('click', () => {
+        if (instantIndex < instantSteps.length - 1) {
+            instantIndex++;
+            showInstantStep();
+        } else {
+            instantOverlay.classList.remove('active');
+        }
+    });
+    document.getElementById('instant-close').addEventListener('click', () => {
+        instantOverlay.classList.remove('active');
+    });
 }
 
 // --- Event Handler ---
@@ -333,19 +513,80 @@ function handleTodoClick(e) {
 }
 
 function handleCalculatorInput(e) {
-    const input = e.target.value.trim();
+    const input = e.target.value.trim().toLowerCase();
+
+    // Zufallszahl
+    if (input.startsWith("rand") || input.startsWith("zufall")) {
+        let match = input.match(/(rand|zufall)\s*(\d+)?\s*[- ]?\s*(\d+)?/);
+        let min = 1, max = 100;
+        if (match && match[2] && match[3]) {
+            min = parseInt(match[2]);
+            max = parseInt(match[3]);
+        }
+        const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+        calculatorResult.textContent = `Zufallszahl: ${rand}`;
+        calculatorResult.classList.add('visible');
+        return;
+    }
+
+    // Würfel
+    if (input.startsWith("roll") || input.startsWith("würfel")) {
+        let match = input.match(/(\d*)d(\d+)/);
+        if (match) {
+            let count = parseInt(match[1]) || 1;
+            let sides = parseInt(match[2]);
+            let rolls = [];
+            for (let i = 0; i < count; i++) {
+                rolls.push(Math.floor(Math.random() * sides) + 1);
+            }
+            let sum = rolls.reduce((a, b) => a + b, 0);
+            calculatorResult.textContent = `Gewürfelt: ${rolls.join(", ")}${count > 1 ? ` (Summe: ${sum})` : ""}`;
+            calculatorResult.classList.add('visible');
+            return;
+        }
+    }
+
+    // Münzwurf
+    if (input === "kopf" || input === "zahl") {
+        calculatorResult.textContent = "Ergebnis: " + (Math.random() < 0.5 ? "Kopf" : "Zahl");
+        calculatorResult.classList.add('visible');
+        return;
+    }
+
+    // Passwortgenerator
+    if (input.startsWith("pw") || input.startsWith("passwort")) {
+        let match = input.match(/(pw|passwort)\s*(\d+)?/);
+        let length = match && match[2] ? parseInt(match[2]) : 12;
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-={}[]";
+        let pw = "";
+        for (let i = 0; i < length; i++) {
+            pw += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        calculatorResult.innerHTML = `
+            <span>${pw}</span>
+            <button id="copyPwBtn" style="margin-left:8px; cursor:pointer;">📋</button>
+        `;
+        calculatorResult.classList.add('visible');
+        document.getElementById("copyPwBtn").onclick = () => {
+            navigator.clipboard.writeText(pw);
+            document.getElementById("copyPwBtn").textContent = "✅";
+            setTimeout(() => document.getElementById("copyPwBtn").textContent = "📋", 1500);
+        };
+        return;
+    }
+
+    // Mathe-Rechner (nur wenn "=" am Ende)
     if (input.endsWith('=')) {
         const expression = input.slice(0, -1);
         try {
             const result = safeCalculate(expression);
             if (isFinite(result)) {
-                const formattedResult = Number(result.toFixed(10)).toString(); // Avoid long decimals
-                calculatorResult.textContent = formattedResult;
+                calculatorResult.textContent = Number(result.toFixed(10)).toString();
                 calculatorResult.classList.add('visible');
             } else {
-               calculatorResult.classList.remove('visible');
+                calculatorResult.classList.remove('visible');
             }
-        } catch (error) {
+        } catch {
             calculatorResult.classList.remove('visible');
         }
     } else {
@@ -507,6 +748,8 @@ function handleColorChange() {
         gradientEnd: document.getElementById('color-gradient-end').value,
         accent: document.getElementById('color-accent').value,
         textColor: document.getElementById('color-text').value,
+        greeting: document.getElementById('color-greeting').value,
+        clock: document.getElementById('color-clock').value,
     };
     applyColors(newColors);
     localStorage.setItem('themeColors', JSON.stringify(newColors));
@@ -730,7 +973,10 @@ function showInputModal(title, initialValue, onConfirm) {
     const confirmBtn = document.getElementById('modal-confirm');
     const cancelBtn = document.getElementById('modal-cancel');
 
-    const confirmHandler = () => { onConfirm(input.value.trim()); };
+    const confirmHandler = () => {
+        onConfirm(input.value.trim());
+        closeActiveModal(); 
+    };
     
     confirmBtn.addEventListener('click', confirmHandler, { once: true });
     cancelBtn.addEventListener('click', closeActiveModal, { once: true });
@@ -751,7 +997,10 @@ function showConfirmModal(title, text, onConfirm, isAlert = false) {
     confirmBtn.textContent = isAlert ? "OK" : "Ja";
     confirmBtn.classList.toggle('danger', !isAlert);
 
-    const confirmHandler = () => { onConfirm(); };
+    const confirmHandler = () => {
+        onConfirm();
+        closeActiveModal();
+    };
 
     confirmBtn.addEventListener('click', confirmHandler, { once: true });
     cancelBtn.addEventListener('click', closeActiveModal, { once: true });
@@ -763,6 +1012,15 @@ function updateTime() {
     const now = new Date();
     timeEl.textContent = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     dateEl.textContent = now.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// --- Sicherer Mathematik-Rechner ---
+function safeCalculate(expression) {
+    const sanitized = expression.replace(/[^0-9\.\+\-\*\/\(\)\s]/g, '');
+    if (sanitized !== expression) {
+        throw new Error("Invalid characters");
+    }
+    return new Function('return ' + sanitized)();
 }
 
 // --- Automatische To-Do-Updates ---
@@ -880,3 +1138,53 @@ function hexToRgb(hex) {
     } : null;
 }
 
+// --- Instant Answers Tutorial ---
+const instantTutorialBtn = document.getElementById("instant-tutorial-btn");
+const instantOverlay = document.getElementById("instant-tutorial-overlay");
+const instantText = document.getElementById("instant-tutorial-text");
+const instantPrev = document.getElementById("instant-prev");
+const instantNext = document.getElementById("instant-next");
+const instantClose = document.getElementById("instant-close");
+
+const instantSteps = [
+    "Willkommen beim <b>Instant-Answers Tutorial</b> 🎉",
+    "Du kannst im Suchfeld direkt <b>Zufallszahlen</b> erzeugen: <code>rand 1-10</code> oder <code>zufall 100</code>.",
+    "Würfel werfen? Tippe <code>roll 1d6</code> oder <code>3d20</code> für mehrere Würfel.",
+    "Münzwurf? Einfach <code>Kopf</code> oder <code>Zahl</code> eingeben.",
+    "Passwort-Generator: <code>pw 16</code> erzeugt ein 16-stelliges Passwort, mit Kopier-Button 📋.",
+    "Viel Spaß mit den Instant-Answers! 🚀"
+];
+
+let instantIndex = 0;
+
+function showInstantStep() {
+    instantText.innerHTML = instantSteps[instantIndex];
+    instantPrev.disabled = (instantIndex === 0);
+    instantNext.textContent = (instantIndex === instantSteps.length - 1) ? "Fertig ✅" : "Weiter ▶";
+}
+
+instantTutorialBtn.onclick = () => {
+    instantOverlay.classList.add("active");
+    instantIndex = 0;
+    showInstantStep();
+};
+
+instantPrev.onclick = () => {
+    if (instantIndex > 0) {
+        instantIndex--;
+        showInstantStep();
+    }
+};
+
+instantNext.onclick = () => {
+    if (instantIndex < instantSteps.length - 1) {
+        instantIndex++;
+        showInstantStep();
+    } else {
+        instantOverlay.classList.remove("active");
+    }
+};
+
+instantClose.onclick = () => {
+    instantOverlay.classList.remove("active");
+};

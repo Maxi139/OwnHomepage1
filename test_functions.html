@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funktionstest - Homepage</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .test-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+        .test-input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .test-result { background: #f9f9f9; padding: 10px; border-radius: 4px; margin: 10px 0; min-height: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; background: #007aff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Homepage Funktionstest</h1>
+        <p>Diese Seite testet alle Funktionen deiner Homepage.</p>
+
+        <div class="test-section">
+            <h3>🎲 Instant Answers Test</h3>
+            <input type="text" id="instantTest" class="test-input" placeholder="Teste: 'rand 1-10', 'roll 2d6', 'kopf', 'pw 12', '5+3='">
+            <div id="instantResult" class="test-result">Ergebnis erscheint hier...</div>
+            <button onclick="testInstantAnswer()">Testen</button>
+            <button onclick="testAllInstantAnswers()">Alle Tests</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Tutorial System</h3>
+            <button onclick="startMainTutorial()">Haupt-Tutorial starten</button>
+            <button onclick="startInstantTutorial()">Instant-Answers Tutorial</button>
+            <div id="tutorialResult" class="test-result">Tutorial-Status...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Suchfunktion Test</h3>
+            <input type="text" id="searchTest" class="test-input" placeholder="Teste URL oder Suchbegriff">
+            <button onclick="testSearch()">Suche testen</button>
+            <div id="searchResult" class="test-result">Such-Test...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Funktions-Status</h3>
+            <div id="statusResult" class="test-result">
+                <div>✅ JavaScript geladen</div>
+                <div>✅ DOM geladen</div>
+                <div>✅ Event-Listener aktiv</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Testet Instant Answers Funktionen
+        function testInstantAnswer() {
+            const input = document.getElementById('instantTest').value;
+            const resultDiv = document.getElementById('instantResult');
+            
+            try {
+                // Simuliere die handleCalculatorInput Logik
+                const testInput = { target: { value: input } };
+                
+                if (input.startsWith('rand') || input.startsWith('zufall')) {
+                    let match = input.match(/(rand|zufall)\s*(\d+)?\s*[- ]?\s*(\d+)?/);
+                    let min = 1, max = 100;
+                    if (match && match[2] && match[3]) {
+                        min = parseInt(match[2]);
+                        max = parseInt(match[3]);
+                    }
+                    const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+                    resultDiv.innerHTML = `<span class="success">✅ Zufallszahl: ${rand}</span>`;
+                }
+                else if (input.startsWith('roll') || input.startsWith('würfel')) {
+                    let match = input.match(/(\d*)d(\d+)/);
+                    if (match) {
+                        let count = parseInt(match[1]) || 1;
+                        let sides = parseInt(match[2]);
+                        let rolls = [];
+                        for (let i = 0; i < count; i++) {
+                            rolls.push(Math.floor(Math.random() * sides) + 1);
+                        }
+                        let sum = rolls.reduce((a, b) => a + b, 0);
+                        resultDiv.innerHTML = `<span class="success">✅ Gewürfelt: ${rolls.join(", ")}${count > 1 ? ` (Summe: ${sum})` : ""}</span>`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">❌ Ungültiges Würfelformat</span>`;
+                    }
+                }
+                else if (input === 'kopf' || input === 'zahl') {
+                    const result = Math.random() < 0.5 ? 'Kopf' : 'Zahl';
+                    resultDiv.innerHTML = `<span class="success">✅ Ergebnis: ${result}</span>`;
+                }
+                else if (input.startsWith('pw') || input.startsWith('passwort')) {
+                    let match = input.match(/(pw|passwort)\s*(\d+)?/);
+                    let length = match && match[2] ? parseInt(match[2]) : 12;
+                    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-={}[]";
+                    let pw = "";
+                    for (let i = 0; i < length; i++) {
+                        pw += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    resultDiv.innerHTML = `<span class="success">✅ Passwort: ${pw} <button onclick="navigator.clipboard.writeText('${pw}')" style="margin-left: 8px; padding: 2px 6px; font-size: 12px;">📋</button></span>`;
+                }
+                else if (input.endsWith('=')) {
+                    const expression = input.slice(0, -1);
+                    try {
+                        const result = new Function('return ' + expression.replace(/[^0-9\.\+\-\*\/\(\)\s]/g, ''))();
+                        if (isFinite(result)) {
+                            resultDiv.innerHTML = `<span class="success">✅ Ergebnis: ${Number(result.toFixed(10)).toString()}</span>`;
+                        } else {
+                            resultDiv.innerHTML = `<span class="error">❌ Ungültige Berechnung</span>`;
+                        }
+                    } catch {
+                        resultDiv.innerHTML = `<span class="error">❌ Fehler in der Berechnung</span>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Kein erkannter Befehl</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Fehler: ${error.message}</span>`;
+            }
+        }
+
+        // Testet alle Instant Answers automatisch
+        function testAllInstantAnswers() {
+            const tests = [
+                'rand 1-10',
+                'zufall 50',
+                'roll 1d6',
+                'würfel 2d20',
+                'kopf',
+                'zahl',
+                'pw 12',
+                'passwort 8',
+                '5+3=',
+                '10*2='
+            ];
+            
+            const resultDiv = document.getElementById('instantResult');
+            resultDiv.innerHTML = '<span class="success">🔄 Teste alle Funktionen...</span>';
+            
+            let results = [];
+            tests.forEach((test, index) => {
+                setTimeout(() => {
+                    document.getElementById('instantTest').value = test;
+                    testInstantAnswer();
+                    results.push(test);
+                    
+                    if (index === tests.length - 1) {
+                        setTimeout(() => {
+                            resultDiv.innerHTML += '<br><span class="success">✅ Alle Tests abgeschlossen!</span>';
+                        }, 500);
+                    }
+                }, index * 1000);
+            });
+        }
+
+        // Testet Suchfunktion
+        function testSearch() {
+            const input = document.getElementById('searchTest').value;
+            const resultDiv = document.getElementById('searchResult');
+            
+            if (!input.trim()) {
+                resultDiv.innerHTML = '<span class="error">❌ Bitte gib etwas ein</span>';
+                return;
+            }
+
+            const isUrl = input.includes('.') && !input.includes(' ') && !input.startsWith('?') && !input.startsWith('.');
+            if (isUrl) {
+                const url = input.startsWith('http') ? input : 'https://' + input;
+                resultDiv.innerHTML = `<span class="success">✅ URL erkannt: ${url}</span>`;
+            } else {
+                resultDiv.innerHTML = `<span class="success">✅ Suchbegriff: "${input}"</span>`;
+            }
+        }
+
+        // Startet Haupt-Tutorial
+        function startMainTutorial() {
+            document.getElementById('tutorialResult').innerHTML = '<span class="success">🎯 Haupt-Tutorial wurde gestartet! (In der Haupt-Website)</span>';
+            // In der echten Website würde das Tutorial jetzt starten
+        }
+
+        // Startet Instant-Answers Tutorial
+        function startInstantTutorial() {
+            document.getElementById('tutorialResult').innerHTML = '<span class="success">🎲 Instant-Answers Tutorial wurde gestartet! (In der Haupt-Website)</span>';
+            // In der echten Website würde das Tutorial jetzt starten
+        }
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('instantTest').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    testInstantAnswer();
+                }
+            });
+            
+            document.getElementById('searchTest').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    testSearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

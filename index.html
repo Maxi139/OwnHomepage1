@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
-    <!-- Import für eine schönere Schriftart für die Überschrift -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main>
-        <button id="settings-btn">
+    <main class="initial-load">
+        <button id="settings-btn" aria-label="Einstellungen">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
         <div id="clock-container">
@@ -24,7 +23,7 @@
         <div class="search-wrapper">
             <div id="searchBar">
                 <input type="text" placeholder="Suche oder gib eine URL ein..." required>
-                <div id="calculator-result"></div>
+                <div id="calculator-result" aria-live="polite"></div>
                 <div id="search-container">
                     <button id="SearchButton">Google</button>
                 </div>
@@ -33,7 +32,7 @@
         </div>
 
         <div id="bookmarks">
-            <button id="add-bookmark-btn" class="bookmark add-bookmark">+</button>
+            <button id="add-bookmark-btn" class="bookmark add-bookmark" aria-label="Lesezeichen hinzufügen">+</button>
         </div>
 
         <div class="widget-row">
@@ -52,9 +51,7 @@
         </div>
     </main>
 
-    <!-- Modals & Overlays -->
     <div id="modal-overlay" class="hidden">
-        <!-- Input Modal -->
         <div id="input-modal" class="modal hidden">
             <h3 id="modal-title">Titel</h3>
             <input type="text" id="modal-input">
@@ -63,7 +60,6 @@
                 <button id="modal-confirm" class="modal-button">Bestätigen</button>
             </div>
         </div>
-        <!-- Confirm Modal -->
         <div id="confirm-modal" class="modal hidden">
             <h3 id="confirm-modal-title">Bestätigen</h3>
             <p id="confirm-modal-text">Bist du sicher?</p>
@@ -72,9 +68,8 @@
                 <button id="confirm-modal-confirm" class="modal-button">Ja</button>
             </div>
         </div>
-         <!-- Settings Modal -->
-        <div id="settings-modal" class="modal hidden">
-            <button id="settings-close-btn" class="close-btn">&times;</button>
+         <div id="settings-modal" class="modal hidden">
+            <button id="settings-close-btn" class="close-btn" aria-label="Schließen">&times;</button>
             <h2>Einstellungen</h2>
             <div class="settings-section">
                 <h4>Farbschema</h4>
@@ -88,6 +83,7 @@
                 </div>
                  <button id="reset-colors-btn" class="modal-button secondary small">Farben zurücksetzen</button>
             </div>
+
             <div class="settings-section">
                 <h4>Hintergrundbild</h4>
                  <form id="background-form" class="settings-form">
@@ -100,6 +96,7 @@
                     <button id="reset-background-btn" class="modal-button secondary small">Zurücksetzen</button>
                 </div>
             </div>
+
             <div class="settings-section">
                 <h4>Suchmaschinen</h4>
                 <ul id="settings-searchengine-list"></ul>
@@ -109,6 +106,7 @@
                     <button type="submit" class="modal-button small">Hinzufügen</button>
                 </form>
             </div>
+
              <div class="settings-section">
                 <h4>Daten</h4>
                 <div class="import-export-buttons">
@@ -117,9 +115,16 @@
                     <input type="file" id="import-file-input" accept=".json" style="display: none;">
                 </div>
             </div>
+
+            <!-- Instant-Answers Tutorial Button -->
+            <div class="settings-section">
+                <h4>Instant-Answers</h4>
+                <p class="small-text">Kurz-Anleitung zu Zufall, Würfeln, Münze und Passwort.</p>
+                <button id="instant-tutorial-btn" class="modal-button small">📘 Instant-Answers Tutorial starten</button>
+            </div>
         </div>
-         <!-- Widget Modal -->
-        <div id="widget-modal" class="modal hidden">
+
+         <div id="widget-modal" class="modal hidden">
             <button id="widget-close-btn" class="close-btn">&times;</button>
             <h3 id="widget-modal-title">Widget</h3>
             <div id="widget-modal-content"></div>
@@ -130,14 +135,12 @@
         </div>
     </div>
     
-    <!-- Tutorial Banner -->
     <div id="tutorial-banner" class="tutorial-banner">
         <p>Neu hier? Nimm an einer kurzen Tour teil!</p>
         <button id="start-tutorial-btn" class="modal-button small">Starten</button>
         <button id="close-tutorial-banner-btn" class="close-btn">&times;</button>
     </div>
 
-    <!-- Tutorial Overlay -->
     <div id="tutorial-overlay" class="hidden"></div>
     <div id="tutorial-box" class="hidden">
         <p id="tutorial-text">Dies ist ein Tutorial-Schritt.</p>
@@ -153,7 +156,18 @@
         </div>
     </div>
 
+    <!-- Instant-Answers Tutorial Overlay -->
+    <div id="instant-tutorial-overlay" class="hidden" aria-hidden="true">
+        <div class="instant-tutorial-box">
+            <div id="instant-tutorial-text"></div>
+            <div class="instant-tutorial-buttons">
+                <button id="instant-prev" class="modal-button secondary small">◀ Zurück</button>
+                <button id="instant-next" class="modal-button small">Weiter ▶</button>
+                <button id="instant-close" class="modal-button secondary small">Schließen ✖</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
-
